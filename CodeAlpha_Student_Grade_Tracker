@@ -1,0 +1,95 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class GradeTracker {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        ArrayList<String> names = new ArrayList<>();
+        ArrayList<Double> grades = new ArrayList<>();
+
+        int choice;
+
+        do {
+            System.out.println("\n===== Student Grade Tracker =====");
+            System.out.println("1. Add Student");
+            System.out.println("2. Show Report");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    System.out.print("Enter Student Name: ");
+                    String name = sc.nextLine();
+
+                    System.out.print("Enter Student Grade: ");
+                    double grade = sc.nextDouble();
+                    sc.nextLine();
+
+                    names.add(name);
+                    grades.add(grade);
+
+                    System.out.println("Student Added Successfully.");
+                    break;
+
+                case 2:
+                    if (names.isEmpty()) {
+                        System.out.println("No Student Records.");
+                    } else {
+
+                        double total = 0;
+                        double highest = grades.get(0);
+                        double lowest = grades.get(0);
+
+                        String highestName = names.get(0);
+                        String lowestName = names.get(0);
+
+                        System.out.println("\n===== Student Report =====");
+                        System.out.printf("%-20s %s%n", "Name", "Grade");
+                        System.out.println("------------------------------");
+
+                        for (int i = 0; i < names.size(); i++) {
+                            System.out.printf("%-20s %.2f%n", names.get(i), grades.get(i));
+
+                            total += grades.get(i);
+
+                            if (grades.get(i) > highest) {
+                                highest = grades.get(i);
+                                highestName = names.get(i);
+                            }
+
+                            if (grades.get(i) < lowest) {
+                                lowest = grades.get(i);
+                                lowestName = names.get(i);
+                            }
+                        }
+
+                        double average = total / grades.size();
+
+                        System.out.println("------------------------------");
+                        System.out.println("Total Students : " + names.size());
+                        System.out.printf("Average Grade : %.2f%n", average);
+                        System.out.printf("Highest Grade : %.2f (%s)%n", highest, highestName);
+                        System.out.printf("Lowest Grade  : %.2f (%s)%n", lowest, lowestName);
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("Program Ended.");
+                    break;
+
+                default:
+                    System.out.println("Invalid Choice.");
+            }
+
+        } while (choice != 3);
+
+        sc.close();
+    }
+}
