@@ -1,0 +1,724 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+class Room {
+    private int roomNumber;
+    private String category;
+    private double price;
+    private boolean available;
+
+    public Room(int roomNumber, String category, double price, boolean available) {
+        this.roomNumber = roomNumber;
+        this.category = category;
+        this.price = price;
+        this.available = available;
+    }
+
+    public int getRoomNumber() {
+        return roomNumber;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
+    public String toString() {
+        return "Room No: " + roomNumber
+                + " | Category: " + category
+                + " | Price/Day: Rs." + price
+                + " | " + (available ? "Available" : "Booked");
+    }
+}
+
+class Booking {
+    private int bookingId;
+    private String customerName;
+    private String phoneNumber;
+    private int roomNumber;
+    private String category;
+    private int stayDays;
+    private double pricePerDay;
+    private double totalAmount;
+    private String bookingDateTime;
+
+    public Booking(int bookingId, String customerName,
+                   String phoneNumber, int roomNumber,
+                   String category, int stayDays,
+                   double pricePerDay, double totalAmount,
+                   String bookingDateTime) {
+
+        this.bookingId = bookingId;
+        this.customerName = customerName;
+        this.phoneNumber = phoneNumber;
+        this.roomNumber = roomNumber;
+        this.category = category;
+        this.stayDays = stayDays;
+        this.pricePerDay = pricePerDay;
+        this.totalAmount = totalAmount;
+        this.bookingDateTime = bookingDateTime;
+    }
+
+    public int getBookingId() {
+        return bookingId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public int getRoomNumber() {
+        return roomNumber;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public int getStayDays() {
+        return stayDays;
+    }
+
+    public double getPricePerDay() {
+        return pricePerDay;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public String getBookingDateTime() {
+        return bookingDateTime;
+    }
+
+    public String toString() {
+        return bookingId + "|" +
+                customerName + "|" +
+                phoneNumber + "|" +
+                roomNumber + "|" +
+                category + "|" +
+                stayDays + "|" +
+                pricePerDay + "|" +
+                totalAmount + "|" +
+                bookingDateTime;
+    }
+}
+
+class FileManager {
+
+    private static final String FILE_NAME = "bookings.txt";
+
+    public static void saveBooking(Booking booking) {
+        try {
+            BufferedWriter writer =
+                    new BufferedWriter(
+                            new FileWriter(FILE_NAME, true));
+
+            writer.write(booking.toString());
+            writer.newLine();
+            writer.close();
+
+        } catch (IOException e) {
+            System.out.println("Error saving booking.");
+        }
+    }
+
+    public static ArrayList<Booking> loadBookings() {
+
+        ArrayList<Booking> bookings = new ArrayList<>();
+
+        File file = new File(FILE_NAME);
+
+        if (!file.exists()) {
+            return bookings;
+        }
+
+        try {
+            BufferedReader reader =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+
+                String[] data = line.split("\\|");
+
+                if (data.length == 9) {
+
+                    try {
+                        int bookingId =
+                                Integer.parseInt(data[0]);
+
+                        String customerName = data[1];
+                        String phoneNumber = data[2];
+
+                        int roomNumber =
+                                Integer.parseInt(data[3]);
+
+                        String category = data[4];
+
+                        int stayDays =
+                                Integer.parseInt(data[5]);
+
+                        double pricePerDay =
+                                Double.parseDouble(data[6]);
+
+                        double totalAmount =
+                                Double.parseDouble(data[7]);
+
+                        String bookingDateTime = data[8];
+
+                        Booking booking =
+                                new Booking(
+                                        bookingId,
+                                        customerName,
+                                        phoneNumber,
+                                        roomNumber,
+                                        category,
+                                        stayDays,
+                                        pricePerDay,
+                                        totalAmount,
+                                        bookingDateTime
+                                );
+
+                        bookings.add(booking);
+
+                    } catch (NumberFormatException e) {
+                        System.out.println(
+                                "Invalid booking data skipped."
+                        );
+                    }
+                }
+            }
+
+            reader.close();
+
+        } catch (IOException e) {
+            System.out.println("Error loading bookings.");
+        }
+
+        return bookings;
+    }
+
+    public static void saveAllBookings(
+            ArrayList<Booking> bookings) {
+
+        try {
+            BufferedWriter writer =
+                    new BufferedWriter(
+                            new FileWriter(FILE_NAME));
+
+            for (Booking booking : bookings) {
+                writer.write(booking.toString());
+                writer.newLine();
+            }
+
+            writer.close();
+
+        } catch (IOException e) {
+            System.out.println(
+                    "Error updating booking file."
+            );
+        }
+    }
+}
+
+public class Main {
+
+    static ArrayList<Room> rooms =
+            new ArrayList<>();
+
+    static ArrayList<Booking> bookings =
+            new ArrayList<>();
+
+    static Scanner sc =
+            new Scanner(System.in);
+
+    static int nextBookingId = 1;
+
+    public static void main(String[] args) {
+
+        addRooms();
+
+        bookings = FileManager.loadBookings();
+
+        for (Booking booking : bookings) {
+
+            if (booking.getBookingId() >= nextBookingId) {
+                nextBookingId =
+                        booking.getBookingId() + 1;
+            }
+
+            for (Room room : rooms) {
+
+                if (room.getRoomNumber()
+                        == booking.getRoomNumber()) {
+
+                    room.setAvailable(false);
+                }
+            }
+        }
+
+        while (true) {
+
+            System.out.println();
+            System.out.println(
+                    "===== HOTEL RESERVATION SYSTEM =====");
+
+            System.out.println("1. View All Rooms");
+            System.out.println("2. Search by Category");
+            System.out.println("3. Book Room");
+            System.out.println("4. Cancel Booking");
+            System.out.println("5. View Bookings");
+            System.out.println("6. Exit");
+
+            System.out.print("Enter choice: ");
+
+            int choice;
+
+            try {
+                choice = sc.nextInt();
+            } catch (Exception e) {
+                System.out.println(
+                        "Please enter a valid number."
+                );
+                sc.nextLine();
+                continue;
+            }
+
+            switch (choice) {
+
+                case 1:
+                    displayRooms();
+                    break;
+
+                case 2:
+                    searchRoom();
+                    break;
+
+                case 3:
+                    bookRoom();
+                    break;
+
+                case 4:
+                    cancelBooking();
+                    break;
+
+                case 5:
+                    viewBookings();
+                    break;
+
+                case 6:
+                    System.out.println(
+                            "Thank you!"
+                    );
+                    sc.close();
+                    return;
+
+                default:
+                    System.out.println(
+                            "Invalid choice!"
+                    );
+            }
+        }
+    }
+
+    static void addRooms() {
+
+        rooms.add(
+                new Room(101, "Standard", 1000, true));
+
+        rooms.add(
+                new Room(102, "Standard", 1000, true));
+
+        rooms.add(
+                new Room(201, "Deluxe", 2000, true));
+
+        rooms.add(
+                new Room(202, "Deluxe", 2000, true));
+
+        rooms.add(
+                new Room(301, "Suite", 3500, true));
+
+        rooms.add(
+                new Room(302, "Suite", 3500, true));
+    }
+
+    static void displayRooms() {
+
+        System.out.println();
+        System.out.println("========== ALL ROOMS ==========");
+
+        for (Room room : rooms) {
+            System.out.println(room);
+        }
+    }
+
+    static void searchRoom() {
+
+        sc.nextLine();
+
+        System.out.print(
+                "Enter Category (Standard/Deluxe/Suite): ");
+
+        String category = sc.nextLine();
+
+        boolean found = false;
+
+        for (Room room : rooms) {
+
+            if (room.getCategory()
+                    .equalsIgnoreCase(category)
+                    && room.isAvailable()) {
+
+                System.out.println(room);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println(
+                    "No rooms available."
+            );
+        }
+    }
+
+    static void bookRoom() {
+
+        System.out.print(
+                "Enter Room Number: ");
+
+        int roomNo;
+
+        try {
+            roomNo = sc.nextInt();
+        } catch (Exception e) {
+            System.out.println(
+                    "Invalid room number."
+            );
+            sc.nextLine();
+            return;
+        }
+
+        sc.nextLine();
+
+        Room selectedRoom = null;
+
+        for (Room room : rooms) {
+
+            if (room.getRoomNumber() == roomNo) {
+                selectedRoom = room;
+                break;
+            }
+        }
+
+        if (selectedRoom == null) {
+
+            System.out.println(
+                    "Room not found."
+            );
+
+            return;
+        }
+
+        if (!selectedRoom.isAvailable()) {
+
+            System.out.println(
+                    "Room already booked."
+            );
+
+            return;
+        }
+
+        System.out.print(
+                "Enter Customer Name: ");
+
+        String customerName = sc.nextLine();
+
+        String phoneNumber;
+
+while (true) {
+
+    System.out.print("Enter Customer Phone Number: ");
+    phoneNumber = sc.nextLine().trim();
+
+    // Check if it contains exactly 10 digits
+    if (!phoneNumber.matches("\\d{10}")) {
+        System.out.println("Invalid phone number! Enter exactly 10 digits (numbers only).");
+    } else {
+        break;
+    }
+}
+
+        System.out.print(
+                "Enter Number of Stay Days: ");
+
+        int stayDays;
+
+        try {
+            stayDays = sc.nextInt();
+        } catch (Exception e) {
+            System.out.println(
+                    "Invalid number of days."
+            );
+            sc.nextLine();
+            return;
+        }
+
+        sc.nextLine();
+
+        if (stayDays <= 0) {
+
+            System.out.println(
+                    "Stay days must be greater than 0."
+            );
+
+            return;
+        }
+
+        double pricePerDay =
+                selectedRoom.getPrice();
+
+        double totalAmount =
+                pricePerDay * stayDays;
+
+        LocalDateTime now =
+                LocalDateTime.now();
+
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(
+                        "dd-MM-yyyy HH:mm:ss");
+
+        String bookingDateTime =
+                now.format(formatter);
+
+        System.out.println();
+        System.out.println(
+                "========== BOOKING SUMMARY ==========");
+
+        System.out.println(
+                "Booking ID: " + nextBookingId);
+
+        System.out.println(
+                "Customer Name: " + customerName);
+
+        System.out.println(
+                "Phone Number: " + phoneNumber);
+
+        System.out.println(
+                "Room Number: "
+                        + selectedRoom.getRoomNumber());
+
+        System.out.println(
+                "Category: "
+                        + selectedRoom.getCategory());
+
+        System.out.println(
+                "Stay Days: " + stayDays);
+
+        System.out.println(
+                "Price Per Day: Rs."
+                        + pricePerDay);
+
+        System.out.println(
+                "Total Amount: Rs."
+                        + totalAmount);
+
+        System.out.println(
+                "Booking Date: "
+                        + bookingDateTime);
+
+        System.out.println(
+                "======================================");
+
+        System.out.print(
+                "Confirm Booking? (yes/no): ");
+
+        String confirmation =
+                sc.nextLine();
+
+        if (confirmation.equalsIgnoreCase("yes")) {
+
+            Booking booking =
+                    new Booking(
+                            nextBookingId,
+                            customerName,
+                            phoneNumber,
+                            selectedRoom.getRoomNumber(),
+                            selectedRoom.getCategory(),
+                            stayDays,
+                            pricePerDay,
+                            totalAmount,
+                            bookingDateTime
+                    );
+
+            bookings.add(booking);
+
+            FileManager.saveBooking(booking);
+
+            selectedRoom.setAvailable(false);
+
+            System.out.println();
+            System.out.println(
+                    "BOOKING SUCCESSFUL!");
+
+            System.out.println(
+                    "Booking ID: "
+                            + nextBookingId);
+
+            System.out.println(
+                    "Total Amount: Rs."
+                            + totalAmount);
+
+            nextBookingId++;
+
+        } else {
+
+            System.out.println(
+                    "Booking Cancelled."
+            );
+        }
+    }
+
+    static void cancelBooking() {
+
+        System.out.print(
+                "Enter Booking ID to cancel: ");
+
+        int bookingId;
+
+        try {
+            bookingId = sc.nextInt();
+        } catch (Exception e) {
+            System.out.println(
+                    "Invalid Booking ID."
+            );
+            sc.nextLine();
+            return;
+        }
+
+        Booking removeBooking = null;
+
+        for (Booking booking : bookings) {
+
+            if (booking.getBookingId()
+                    == bookingId) {
+
+                removeBooking = booking;
+                break;
+            }
+        }
+
+        if (removeBooking != null) {
+
+            bookings.remove(removeBooking);
+
+            FileManager.saveAllBookings(
+                    bookings);
+
+            for (Room room : rooms) {
+
+                if (room.getRoomNumber()
+                        == removeBooking
+                                .getRoomNumber()) {
+
+                    room.setAvailable(true);
+                    break;
+                }
+            }
+
+            System.out.println(
+                    "Booking Cancelled Successfully."
+            );
+
+            System.out.println(
+                    "Room "
+                            + removeBooking.getRoomNumber()
+                            + " is now available."
+            );
+
+        } else {
+
+            System.out.println(
+                    "Booking ID not found."
+            );
+        }
+    }
+
+    static void viewBookings() {
+
+        if (bookings.isEmpty()) {
+
+            System.out.println(
+                    "No bookings available."
+            );
+
+            return;
+        }
+
+        System.out.println();
+        System.out.println(
+                "========== ALL BOOKINGS ==========");
+
+        for (Booking booking : bookings) {
+
+            System.out.println(
+                    "Booking ID    : "
+                            + booking.getBookingId());
+
+            System.out.println(
+                    "Customer Name : "
+                            + booking.getCustomerName());
+
+            System.out.println(
+                    "Phone Number  : "
+                            + booking.getPhoneNumber());
+
+            System.out.println(
+                    "Room Number   : "
+                            + booking.getRoomNumber());
+
+            System.out.println(
+                    "Category      : "
+                            + booking.getCategory());
+
+            System.out.println(
+                    "Stay Days     : "
+                            + booking.getStayDays());
+
+            System.out.println(
+                    "Price Per Day : Rs."
+                            + booking.getPricePerDay());
+
+            System.out.println(
+                    "Total Amount  : Rs."
+                            + booking.getTotalAmount());
+
+            System.out.println(
+                    "Booking Date  : "
+                            + booking.getBookingDateTime());
+
+            System.out.println(
+                    "----------------------------------");
+        }
+    }
+}
